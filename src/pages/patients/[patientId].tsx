@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { Plus, Pill } from "lucide-react";
 import { trpc } from "@/utils/trpc";
-import DefaultLayout from "@/layouts/DefaultLayout";
-import Loading from "@/components/Loading";
+import { AppLayout } from "@/layouts/AppLayout";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { Avatar } from "@/components/ui/Avatar";
+import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 import AddMedicationModal from "@/components/modals/AddMedicationModal";
 
 export default function PatientPage() {
@@ -25,148 +29,150 @@ export default function PatientPage() {
   const isError = patientError || medicationsError;
 
   return (
-    <DefaultLayout>
-      <div className="container mx-auto p-8 space-y-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl sm:text-4xl font-bold">Patient Details</h1>
+    <AppLayout>
+      <PageHeader
+        title={patient ? `${patient.first_name} ${patient.last_name}` : "Patient Details"}
+        backHref="/patients"
+        actions={
           <button
-            type="button"
-            onClick={() => router.push("/")}
-            className="btn gap-1 sm:gap-2 w-fit min-w-fit sm:min-w-32 max-w-64 min-h-8 sm:min-h-12 font-bold text-sm sm:text-lg"
+            className="btn btn-primary"
+            onClick={() => setIsModalOpen(true)}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={3}
-              stroke="currentColor"
-              className="w-3 h-3 sm:w-4 sm:h-4"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-            </svg>
-            <span className="hidden sm:inline">Back to Patients</span>
-            <span className="sm:hidden">Back</span>
+            <Plus className="h-5 w-5" />
+            Add Medication
           </button>
+        }
+      />
+
+      {isLoading && (
+        <div className="space-y-6">
+          <LoadingSkeleton.Card />
+          <LoadingSkeleton.Card />
         </div>
+      )}
 
-        {isLoading && (
-          <div className="flex justify-center items-center h-12 mt-12">
-            <Loading />
+      {isError && (
+        <div className="alert alert-error">
+          <span>Error loading patient details. Please try again later.</span>
+        </div>
+      )}
+
+      {/* Patient Details Card */}
+      {!isLoading && patient && (
+        <div className="card bg-base-100 shadow-sm mb-6">
+          <div className="card-body">
+            <div className="flex items-center gap-4 mb-6">
+              <Avatar
+                src={patient.photo_url}
+                name={`${patient.first_name} ${patient.last_name}`}
+                size="xl"
+              />
+              <div>
+                <h2 className="text-xl font-semibold">
+                  {patient.first_name} {patient.last_name}
+                </h2>
+                <p className="text-sm text-base-content/60">
+                  {patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1)} | DOB: {new Date(patient.date_of_birth).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <h3 className="text-xs font-medium text-base-content/50 uppercase tracking-wider mb-1">Email</h3>
+                <p className="font-medium">{patient.email}</p>
+              </div>
+              <div>
+                <h3 className="text-xs font-medium text-base-content/50 uppercase tracking-wider mb-1">Phone</h3>
+                <p className="font-medium">{patient.phone_number}</p>
+              </div>
+              <div>
+                <h3 className="text-xs font-medium text-base-content/50 uppercase tracking-wider mb-1">Address</h3>
+                <p className="font-medium">
+                  {patient.address.street}, {patient.address.city}, {patient.address.state} {patient.address.zipcode}
+                </p>
+              </div>
+              {patient.allergies && patient.allergies.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-medium text-base-content/50 uppercase tracking-wider mb-1">Allergies</h3>
+                  <p className="font-medium text-error">{patient.allergies.join(", ")}</p>
+                </div>
+              )}
+              {patient.medical_conditions && patient.medical_conditions.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-medium text-base-content/50 uppercase tracking-wider mb-1">Medical Conditions</h3>
+                  <p className="font-medium">{patient.medical_conditions.join(", ")}</p>
+                </div>
+              )}
+            </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {isError && (
-          <div className="flex justify-center items-center h-12 mt-12">
-            <p className="text-red-600">Error loading patient details. Please try again later.</p>
-          </div>
-        )}
-
-        {/* Patient Details Card */}
-        {!isLoading && patient && (
-          <div className="card bg-base-100 shadow-lg">
-            <div className="card-body">
-              <h2 className="card-title text-2xl justify-center">
-                {patient.first_name} {patient.last_name}
-              </h2>
-              <p className="text-sm font-bold text-center text-secondary">Patient ID: {patient.id}</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-                <div className="card bg-base-200/50">
-                  <div className="card-body p-4">
-                    <h3 className="text-sm opacity-70 font-bold">Date of Birth</h3>
-                    <p className="font-medium">{new Date(patient.date_of_birth).toLocaleDateString()}</p>
-                  </div>
+      {/* Medications Section */}
+      {!isLoading && (
+        <div className="card bg-base-100 shadow-sm">
+          <div className="card-body">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Medications</h2>
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-success"></div>
+                  <span className="text-base-content/60">Active</span>
                 </div>
-                <div className="card bg-base-200/50">
-                  <div className="card-body p-4">
-                    <h3 className="text-sm opacity-70 font-bold">Gender</h3>
-                    <p className="font-medium">{patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1)}</p>
-                  </div>
-                </div>
-                <div className="card bg-base-200/50">
-                  <div className="card-body p-4">
-                    <h3 className="text-sm opacity-70 font-bold">Email</h3>
-                    <p className="font-medium">{patient.email}</p>
-                  </div>
-                </div>
-                <div className="card bg-base-200/50">
-                  <div className="card-body p-4">
-                    <h3 className="text-sm opacity-70 font-bold">Phone</h3>
-                    <p className="font-medium">{patient.phone_number}</p>
-                  </div>
-                </div>
-                <div className="card bg-base-200/50">
-                  <div className="card-body p-4">
-                    <h3 className="text-sm opacity-70 font-bold">Address</h3>
-                    <p className="font-medium">
-                      {patient.address.street}, {patient.address.city}, {patient.address.state} {patient.address.zipcode}
-                    </p>
-                  </div>
-                </div>
-                <div className="card bg-base-200/50">
-                  <div className="card-body p-4">
-                    <h3 className="text-sm opacity-70 font-bold">Created at</h3>
-                    <p className="font-medium">{new Date(patient.created_at).toLocaleDateString()}</p>
-                  </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-base-300"></div>
+                  <span className="text-base-content/60">Inactive</span>
                 </div>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* Medications Section */}
-        {!isLoading && (
-          <div className="card bg-base-100 shadow-lg">
-            <div className="card-body">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                <div className="flex flex-col gap-2">
-                  <h2 className="card-title text-2xl">Medications</h2>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  <div className="flex items-center gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-success/50"></div>
-                      <span>Active</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-base-200"></div>
-                      <span>Inactive</span>
-                    </div>
-                  </div>
-                  <button
-                    className="btn btn-primary min-w-32 max-w-64 min-h-12 w-full sm:w-auto"
-                    onClick={() => setIsModalOpen(true)}
-                  >
-                    Add Medication
-                  </button>
-                </div>
-              </div>
+            {medications?.length === 0 && (
+              <EmptyState
+                icon={Pill}
+                title="No medications"
+                description="Add a medication to start tracking doses"
+                actionLabel="Add Medication"
+                onAction={() => setIsModalOpen(true)}
+              />
+            )}
 
-              {medications?.length === 0 && (
-                <h3 className="text-lg text-center mt-12">No medications found</h3>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4 auto-rows-fr">
-                {medications?.map((medication) => (
+            {medications && medications.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {medications.map((medication) => (
                   <div
                     key={medication.id}
-                    className={`card w-full h-full transition-all cursor-pointer ${
-                      medication.is_active ? "bg-success/50 hover:bg-success/70" : "bg-base-200 hover:bg-base-200/50"
+                    className={`card cursor-pointer transition-all hover:shadow-md ${
+                      medication.is_active
+                        ? "bg-success/10 border border-success/20"
+                        : "bg-base-200"
                     }`}
                     onClick={() => router.push(`/patients/${patientId}/medications/${medication.id}`)}
                   >
                     <div className="card-body p-4">
-                      <h3 className="card-title text-lg font-bold">{medication.name}</h3>
-                      <p className="text-sm italic">{medication.description}</p>
+                      <div className="flex items-start gap-3">
+                        <div className={`p-2 rounded-lg ${medication.is_active ? "bg-success/20" : "bg-base-300"}`}>
+                          <Pill className={`h-5 w-5 ${medication.is_active ? "text-success" : "text-base-content/50"}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold truncate">{medication.name}</h3>
+                          {medication.dosage && (
+                            <p className="text-sm text-base-content/60">{medication.dosage}</p>
+                          )}
+                          {medication.description && (
+                            <p className="text-sm text-base-content/50 mt-1 line-clamp-2">{medication.description}</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
+            )}
           </div>
-        )}
+        </div>
+      )}
 
-        <AddMedicationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-      </div>
-    </DefaultLayout>
+      <AddMedicationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+    </AppLayout>
   );
 }

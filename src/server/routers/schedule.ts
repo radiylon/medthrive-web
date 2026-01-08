@@ -14,4 +14,36 @@ export const scheduleRouter = router({
     .mutation(async ({ input }) => {
       return await scheduleService.markScheduleAsTaken(input.id);
     }),
+
+  unmarkTaken: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ input }) => {
+      return await scheduleService.unmarkScheduleAsTaken(input.id);
+    }),
+
+  getDashboardSummary: publicProcedure.query(async () => {
+    return await scheduleService.getDashboardSummary();
+  }),
+
+  getOverdueDoses: publicProcedure
+    .input(z.object({ limit: z.number().optional() }).optional())
+    .query(async ({ input }) => {
+      return await scheduleService.getOverdueDoses(input?.limit);
+    }),
+
+  getDueNowDoses: publicProcedure
+    .input(z.object({ limit: z.number().optional() }).optional())
+    .query(async ({ input }) => {
+      return await scheduleService.getDueNowDoses(input?.limit);
+    }),
+
+  getUpcomingDoses: publicProcedure
+    .input(z.object({ limit: z.number().optional() }).optional())
+    .query(async ({ input }) => {
+      return await scheduleService.getUpcomingDoses(input?.limit);
+    }),
+
+  getTodaysDoses: publicProcedure.query(async () => {
+    return await scheduleService.getTodaysDoses();
+  }),
 });

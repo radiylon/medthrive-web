@@ -132,3 +132,8 @@ export function ListItemSkeleton({ className = "" }: { className?: string }) {
     </div>
   );
 }
+
+// Namespace export for convenient usage like LoadingSkeleton.Card
+LoadingSkeleton.Card = CardSkeleton;
+LoadingSkeleton.TableRow = TableRowSkeleton;
+LoadingSkeleton.ListItem = ListItemSkeleton;

@@ -1,18 +1,19 @@
-import { type ReactNode } from "react";
-import { Inbox, FileX, Users, Pill, Calendar } from "lucide-react";
+import { type ReactNode, type ComponentType } from "react";
+import { Inbox, FileX, Users, Pill, Calendar, type LucideProps } from "lucide-react";
 
-export type EmptyStateIcon = "inbox" | "file" | "users" | "pill" | "calendar" | "custom";
+export type EmptyStateIconName = "inbox" | "file" | "users" | "pill" | "calendar";
 
 interface EmptyStateProps {
   title: string;
   description?: string;
-  icon?: EmptyStateIcon;
-  customIcon?: ReactNode;
+  icon?: EmptyStateIconName | ComponentType<LucideProps>;
   action?: ReactNode;
+  actionLabel?: string;
+  onAction?: () => void;
   className?: string;
 }
 
-const iconComponents: Record<Exclude<EmptyStateIcon, "custom">, typeof Inbox> = {
+const iconComponents: Record<EmptyStateIconName, ComponentType<LucideProps>> = {
   inbox: Inbox,
   file: FileX,
   users: Users,
@@ -24,21 +25,26 @@ export function EmptyState({
   title,
   description,
   icon = "inbox",
-  customIcon,
   action,
+  actionLabel,
+  onAction,
   className = "",
 }: EmptyStateProps) {
-  const IconComponent = icon !== "custom" ? iconComponents[icon] : null;
+  // Determine the icon component
+  let IconComponent: ComponentType<LucideProps> | null = null;
+  if (typeof icon === "string") {
+    IconComponent = iconComponents[icon];
+  } else {
+    IconComponent = icon;
+  }
 
   return (
     <div className={`flex flex-col items-center justify-center py-12 px-4 text-center ${className}`}>
-      <div className="mb-4 text-base-content/30">
-        {icon === "custom" && customIcon ? (
-          customIcon
-        ) : IconComponent ? (
+      {IconComponent && (
+        <div className="mb-4 text-base-content/30">
           <IconComponent size={48} strokeWidth={1.5} />
-        ) : null}
-      </div>
+        </div>
+      )}
       <h3 className="text-lg font-semibold text-base-content mb-1">
         {title}
       </h3>
@@ -48,6 +54,11 @@ export function EmptyState({
         </p>
       )}
       {action && <div className="mt-2">{action}</div>}
+      {actionLabel && onAction && (
+        <button className="btn btn-primary mt-4" onClick={onAction}>
+          {actionLabel}
+        </button>
+      )}
     </div>
   );
 }

@@ -8,6 +8,8 @@ export class PatientService {
       id: patients.id,
       first_name: patients.first_name,
       last_name: patients.last_name,
+      photo_url: patients.photo_url,
+      medical_conditions: patients.medical_conditions,
     }).from(patients);
   }
 

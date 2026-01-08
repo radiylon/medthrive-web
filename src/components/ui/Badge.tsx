@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 
-export type BadgeVariant = "default" | "primary" | "secondary" | "success" | "warning" | "error" | "info" | "overdue" | "due-now" | "upcoming" | "taken";
+export type BadgeVariant = "default" | "primary" | "secondary" | "success" | "warning" | "error" | "info" | "neutral" | "overdue" | "due-now" | "upcoming" | "taken";
 export type BadgeSize = "sm" | "md" | "lg";
 
 interface BadgeProps {
@@ -18,6 +18,7 @@ const variantClasses: Record<BadgeVariant, string> = {
   warning: "bg-warning text-warning-content",
   error: "bg-error text-error-content",
   info: "bg-info text-info-content",
+  neutral: "bg-base-300 text-base-content/70",
   overdue: "bg-[var(--dose-overdue-bg)] text-[var(--dose-overdue-text)] border border-[var(--dose-overdue-border)]",
   "due-now": "bg-[var(--dose-due-now-bg)] text-[var(--dose-due-now-text)] border border-[var(--dose-due-now-border)]",
   upcoming: "bg-[var(--dose-upcoming-bg)] text-[var(--dose-upcoming-text)] border border-[var(--dose-upcoming-border)]",
