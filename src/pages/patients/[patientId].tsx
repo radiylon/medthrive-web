@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { Plus, Pill } from "lucide-react";
+import { Plus, Pill, Pencil } from "lucide-react";
 import { trpc } from "@/utils/trpc";
 import { AppLayout } from "@/layouts/AppLayout";
 import { PageHeader } from "@/components/navigation/PageHeader";
@@ -8,9 +8,11 @@ import { Avatar } from "@/components/ui/Avatar";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import AddMedicationModal from "@/components/modals/AddMedicationModal";
+import EditPatientModal from "@/components/modals/EditPatientModal";
 
 export default function PatientPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddMedModalOpen, setIsAddMedModalOpen] = useState(false);
+  const [isEditPatientModalOpen, setIsEditPatientModalOpen] = useState(false);
 
   const router = useRouter();
   const { patientId } = router.query;
@@ -34,13 +36,22 @@ export default function PatientPage() {
         title={patient ? `${patient.first_name} ${patient.last_name}` : "Patient Details"}
         backHref="/patients"
         actions={
-          <button
-            className="btn btn-primary"
-            onClick={() => setIsModalOpen(true)}
-          >
-            <Plus className="h-5 w-5" />
-            Add Medication
-          </button>
+          <div className="flex gap-2">
+            <button
+              className="btn btn-outline"
+              onClick={() => setIsEditPatientModalOpen(true)}
+            >
+              <Pencil className="h-4 w-4" />
+              Edit
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={() => setIsAddMedModalOpen(true)}
+            >
+              <Plus className="h-5 w-5" />
+              Add Medication
+            </button>
+          </div>
         }
       />
 
@@ -132,7 +143,7 @@ export default function PatientPage() {
                 title="No medications"
                 description="Add a medication to start tracking doses"
                 actionLabel="Add Medication"
-                onAction={() => setIsModalOpen(true)}
+                onAction={() => setIsAddMedModalOpen(true)}
               />
             )}
 
@@ -172,7 +183,12 @@ export default function PatientPage() {
         </div>
       )}
 
-      <AddMedicationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <AddMedicationModal isOpen={isAddMedModalOpen} onClose={() => setIsAddMedModalOpen(false)} />
+      <EditPatientModal
+        isOpen={isEditPatientModalOpen}
+        onClose={() => setIsEditPatientModalOpen(false)}
+        patient={patient ?? null}
+      />
     </AppLayout>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { Check, Pill, Calendar, Hash, Clock, ToggleLeft, ToggleRight } from "lucide-react";
+import { Check, Pill, Calendar, Hash, Clock, ToggleLeft, ToggleRight, Pencil } from "lucide-react";
 import { trpc } from "@/utils/trpc";
 import { useToast } from "@/contexts/ToastContext";
 import { AppLayout } from "@/layouts/AppLayout";
@@ -8,9 +8,11 @@ import { PageHeader } from "@/components/navigation/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import EditMedicationModal from "@/components/modals/EditMedicationModal";
 
 export default function MedicationPage() {
   const [pendingScheduleId, setPendingScheduleId] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const router = useRouter();
   const { patientId, medicationId } = router.query;
   const { showToast } = useToast();
@@ -37,8 +39,12 @@ export default function MedicationPage() {
   });
 
   const markTaken = trpc.schedule.markTaken.useMutation({
-    onSuccess: () => {
-      showToast({ message: "Dose marked as taken", type: "success" });
+    onSuccess: (_data, variables) => {
+      showToast({
+        message: "Dose marked as taken",
+        type: "success",
+        onUndo: () => handleUndo(variables.id),
+      });
       utils.schedule.byMedicationId.invalidate({ medicationId: medicationId as string });
     },
     onError: (error) => {
@@ -48,6 +54,20 @@ export default function MedicationPage() {
       setPendingScheduleId(null);
     },
   });
+
+  const unmarkTaken = trpc.schedule.unmarkTaken.useMutation({
+    onSuccess: () => {
+      showToast({ message: "Undo successful", type: "success" });
+      utils.schedule.byMedicationId.invalidate({ medicationId: medicationId as string });
+    },
+    onError: (error) => {
+      showToast({ message: error.message, type: "error" });
+    },
+  });
+
+  const handleUndo = (scheduleId: string) => {
+    unmarkTaken.mutate({ id: scheduleId });
+  };
 
   const onScheduleClick = (scheduleId: string) => {
     setPendingScheduleId(scheduleId);
@@ -77,23 +97,32 @@ export default function MedicationPage() {
         backHref={`/patients/${patientId}`}
         actions={
           medication && (
-            <button
-              onClick={onToggleActive}
-              className={`btn ${medication.is_active ? "btn-ghost" : "btn-success"}`}
-              disabled={patchMedication.isPending}
-            >
-              {medication.is_active ? (
-                <>
-                  <ToggleRight className="h-5 w-5" />
-                  {patchMedication.isPending ? "Updating..." : "Deactivate"}
-                </>
-              ) : (
-                <>
-                  <ToggleLeft className="h-5 w-5" />
-                  {patchMedication.isPending ? "Updating..." : "Activate"}
-                </>
-              )}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="btn btn-outline"
+              >
+                <Pencil className="h-4 w-4" />
+                Edit
+              </button>
+              <button
+                onClick={onToggleActive}
+                className={`btn ${medication.is_active ? "btn-ghost" : "btn-success"}`}
+                disabled={patchMedication.isPending}
+              >
+                {medication.is_active ? (
+                  <>
+                    <ToggleRight className="h-5 w-5" />
+                    {patchMedication.isPending ? "Updating..." : "Deactivate"}
+                  </>
+                ) : (
+                  <>
+                    <ToggleLeft className="h-5 w-5" />
+                    {patchMedication.isPending ? "Updating..." : "Activate"}
+                  </>
+                )}
+              </button>
+            </div>
           )
         }
       />
@@ -252,6 +281,12 @@ export default function MedicationPage() {
           </div>
         </div>
       )}
+
+      <EditMedicationModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        medication={medication ?? null}
+      />
     </AppLayout>
   );
 }

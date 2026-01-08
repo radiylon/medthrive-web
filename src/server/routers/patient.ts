@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, publicProcedure } from "../trpc";
 import { patientService } from "../services";
-import { patientCreateSchema } from "@/schemas";
+import { patientCreateSchema, patientUpdateSchema } from "@/schemas";
 
 export const patientRouter = router({
   list: publicProcedure.query(async () => {
@@ -16,5 +16,10 @@ export const patientRouter = router({
 
   create: publicProcedure.input(patientCreateSchema).mutation(async ({ input }) => {
     return await patientService.createPatient(input);
+  }),
+
+  update: publicProcedure.input(patientUpdateSchema).mutation(async ({ input }) => {
+    const { id, ...updates } = input;
+    return await patientService.updatePatient(id, updates);
   }),
 });
