@@ -1,26 +1,18 @@
-import { useState } from "react";
 import { useRouter } from "next/router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { trpc } from "@/utils/trpc";
+import { toLocalDateString } from "@/utils/date";
 import { useToast } from "@/contexts/ToastContext";
+import { medicationFormSchema, MedicationFormData } from "@/schemas";
+import { FormField, DatePickerInput } from "@/components/forms";
 
 interface AddMedicationModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type FormData = {
-  name: string;
-  is_active: boolean;
-  description: string;
-  quantity: number;
-  schedule: {
-    frequency: number;
-    type: "daily" | "weekly";
-    start_date: string;
-  };
-};
-
-const getInitialFormData = (): FormData => ({
+const getDefaultValues = (): MedicationFormData => ({
   name: "",
   is_active: true,
   description: "",
@@ -28,36 +20,49 @@ const getInitialFormData = (): FormData => ({
   schedule: {
     frequency: 2,
     type: "daily",
-    start_date: new Date().toISOString().split("T")[0],
+    start_date: toLocalDateString(),
   },
 });
 
 export default function AddMedicationModal({ isOpen, onClose }: AddMedicationModalProps) {
-  const [formData, setFormData] = useState(getInitialFormData());
   const { showToast } = useToast();
   const utils = trpc.useUtils();
 
   const router = useRouter();
   const { patientId } = router.query;
 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<MedicationFormData>({
+    resolver: zodResolver(medicationFormSchema),
+    defaultValues: getDefaultValues(),
+  });
+
   const createMedication = trpc.medication.create.useMutation({
     onSuccess: () => {
       showToast({ message: "Medication created successfully", type: "success" });
       utils.medication.byPatientId.invalidate({ patientId: patientId as string });
       onClose();
-      setFormData(getInitialFormData());
+      reset(getDefaultValues());
     },
     onError: (error) => {
       showToast({ message: error.message, type: "error" });
     },
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = (data: MedicationFormData) => {
     createMedication.mutate({
-      ...formData,
+      ...data,
       patient_id: patientId as string,
     });
+  };
+
+  const handleClose = () => {
+    reset(getDefaultValues());
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -68,112 +73,78 @@ export default function AddMedicationModal({ isOpen, onClose }: AddMedicationMod
         <form method="dialog">
           <button
             className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-            onClick={onClose}
+            onClick={handleClose}
           >
             ✕
           </button>
         </form>
         <h3 className="font-bold text-xl sm:text-2xl mb-4 text-center">Add New Medication</h3>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-          <div className="form-control flex flex-col gap-2">
-            <label className="label">
-              <span className="label-text">Medication Name</span>
-            </label>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+          <FormField label="Medication Name" error={errors.name?.message} required>
             <input
               type="text"
               className="input input-bordered w-full"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
+              {...register("name")}
             />
-          </div>
-          <div className="form-control flex flex-col gap-2">
-            <label className="label">
-              <span className="label-text">Description</span>
-            </label>
+          </FormField>
+
+          <FormField label="Description" error={errors.description?.message}>
             <input
               type="text"
               className="input input-bordered w-full"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              {...register("description")}
             />
-          </div>
-          <div className="form-control flex flex-col gap-2">
-            <label className="label">
-              <span className="label-text">Medication Quantity</span>
-            </label>
+          </FormField>
+
+          <FormField label="Medication Quantity" error={errors.quantity?.message} required>
             <input
               type="number"
               className="input input-bordered w-full"
-              value={formData.quantity}
-              onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
-              required
+              {...register("quantity", { valueAsNumber: true })}
             />
-          </div>
-          <div className="form-control flex flex-col gap-2">
-            <label className="label">
-              <span className="label-text">Dosage Frequency (example: 2 times/day)</span>
-            </label>
+          </FormField>
+
+          <FormField
+            label="Dosage Frequency (example: 2 times/day)"
+            error={errors.schedule?.frequency?.message}
+            required
+          >
             <input
               type="number"
               className="input input-bordered w-full"
-              value={formData.schedule.frequency}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  schedule: { ...formData.schedule, frequency: parseInt(e.target.value) || 1 },
-                })
-              }
-              required
+              {...register("schedule.frequency", { valueAsNumber: true })}
             />
-          </div>
-          <div className="form-control flex flex-col gap-2">
-            <label className="label">
-              <span className="label-text">Start Date</span>
-            </label>
-            <input
-              type="date"
-              className="input input-bordered w-full"
-              value={formData.schedule.start_date}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  schedule: { ...formData.schedule, start_date: e.target.value },
-                })
-              }
-              required
-            />
-          </div>
-          <div className="form-control flex flex-col gap-2">
-            <label className="label">
-              <span className="label-text">Type</span>
-            </label>
+          </FormField>
+
+          <DatePickerInput
+            name="schedule.start_date"
+            register={register}
+            errors={errors}
+            label="Start Date"
+            required
+          />
+
+          <FormField label="Type" error={errors.schedule?.type?.message} required>
             <select
               className="select select-bordered w-full"
-              value={formData.schedule.type}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  schedule: { ...formData.schedule, type: e.target.value as "daily" | "weekly" },
-                })
-              }
-              required
+              {...register("schedule.type")}
             >
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
             </select>
-          </div>
+          </FormField>
+
           <div className="modal-action flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-2 mt-8 col-span-1 sm:col-span-2">
             <button
               type="button"
-              className="btn btn-outline hover:bg-base-200/50 min-w-32 max-w-64 min-h-12 rounded-lg w-full sm:w-auto"
-              onClick={onClose}
+              className="btn btn-outline hover:bg-base-200/50 min-w-32 max-w-64 min-h-12 w-full sm:w-auto"
+              onClick={handleClose}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn btn-primary min-w-32 max-w-64 min-h-12 rounded-lg w-full sm:w-auto"
+              className="btn btn-primary min-w-32 max-w-64 min-h-12 w-full sm:w-auto"
               disabled={createMedication.isPending}
             >
               {createMedication.isPending ? "Adding..." : "Add Medication"}
@@ -182,7 +153,7 @@ export default function AddMedicationModal({ isOpen, onClose }: AddMedicationMod
         </form>
       </div>
       <form method="dialog" className="modal-backdrop">
-        <button onClick={onClose}>close</button>
+        <button onClick={handleClose}>close</button>
       </form>
     </dialog>
   );

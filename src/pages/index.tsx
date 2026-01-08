@@ -15,7 +15,7 @@ export default function HomePage() {
         <div className="flex flex-col sm:flex-row sm:justify-between gap-4 mb-8">
           <h1 className="text-4xl font-bold">Patients</h1>
           <button
-            className="btn btn-primary min-w-32 max-w-64 min-h-12 rounded-lg w-full sm:w-auto"
+            className="btn btn-primary min-w-32 max-w-64 min-h-12 w-full sm:w-auto"
             onClick={() => setIsModalOpen(true)}
           >
             Add Patient

@@ -71,7 +71,7 @@ export default function MedicationPage() {
           <button
             type="button"
             onClick={() => router.push(`/patients/${patientId}`)}
-            className="btn gap-1 sm:gap-2 w-fit min-w-fit sm:min-w-32 max-w-64 min-h-8 sm:min-h-12 rounded-lg font-bold text-sm sm:text-lg"
+            className="btn gap-1 sm:gap-2 w-fit min-w-fit sm:min-w-32 max-w-64 min-h-8 sm:min-h-12 font-bold text-sm sm:text-lg"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -111,7 +111,7 @@ export default function MedicationPage() {
                 </div>
                 <button
                   onClick={onToggleActive}
-                  className={`btn btn-md rounded-lg w-full sm:w-auto ${medication.is_active ? "btn-error" : "btn-success"}`}
+                  className={`btn btn-md w-full sm:w-auto ${medication.is_active ? "btn-error" : "btn-success"}`}
                   disabled={patchMedication.isPending}
                 >
                   {patchMedication.isPending ? "Updating..." : medication.is_active ? "Deactivate" : "Activate"}
@@ -200,7 +200,7 @@ export default function MedicationPage() {
                           {!dose.taken_at && (
                             <button
                               onClick={() => onScheduleClick(dose.id)}
-                              className="btn btn-md btn-success rounded-lg w-full sm:w-auto text-xs sm:text-sm"
+                              className="btn btn-md btn-success w-full sm:w-auto text-xs sm:text-sm"
                               disabled={pendingScheduleId === dose.id}
                             >
                               {pendingScheduleId === dose.id ? "Marking..." : "Mark Taken"}

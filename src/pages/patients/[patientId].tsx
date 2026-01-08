@@ -32,7 +32,7 @@ export default function PatientPage() {
           <button
             type="button"
             onClick={() => router.push("/")}
-            className="btn gap-1 sm:gap-2 w-fit min-w-fit sm:min-w-32 max-w-64 min-h-8 sm:min-h-12 rounded-lg font-bold text-sm sm:text-lg"
+            className="btn gap-1 sm:gap-2 w-fit min-w-fit sm:min-w-32 max-w-64 min-h-8 sm:min-h-12 font-bold text-sm sm:text-lg"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -133,7 +133,7 @@ export default function PatientPage() {
                     </div>
                   </div>
                   <button
-                    className="btn btn-primary min-w-32 max-w-64 min-h-12 rounded-lg w-full sm:w-auto"
+                    className="btn btn-primary min-w-32 max-w-64 min-h-12 w-full sm:w-auto"
                     onClick={() => setIsModalOpen(true)}
                   >
                     Add Medication
