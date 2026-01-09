@@ -2,6 +2,17 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { Plus, Pill, Pencil } from "lucide-react";
 import { trpc } from "@/utils/trpc";
+
+// Format E.164 phone number for display: +12025551234 -> (202) 555-1234
+function formatPhoneNumber(value: string | null | undefined): string {
+  if (!value) return "";
+  const digits = value.replace(/\D/g, "");
+  const nationalNumber = digits.startsWith("1") && digits.length > 10
+    ? digits.slice(1)
+    : digits;
+  if (nationalNumber.length !== 10) return value;
+  return `(${nationalNumber.slice(0, 3)}) ${nationalNumber.slice(3, 6)}-${nationalNumber.slice(6, 10)}`;
+}
 import { AppLayout } from "@/layouts/AppLayout";
 import { PageHeader } from "@/components/navigation/PageHeader";
 import { Avatar } from "@/components/ui/Avatar";
@@ -29,6 +40,9 @@ export default function PatientPage() {
 
   const isLoading = patientLoading || medicationsLoading;
   const isError = patientError || medicationsError;
+
+  console.log(medications);
+  console.log(patient);
 
   return (
     <AppLayout>
@@ -94,7 +108,7 @@ export default function PatientPage() {
               </div>
               <div>
                 <h3 className="text-xs font-medium text-base-content/50 uppercase tracking-wider mb-1">Phone</h3>
-                <p className="font-medium">{patient.phone_number}</p>
+                <p className="font-medium">{formatPhoneNumber(patient.phone_number)}</p>
               </div>
               <div>
                 <h3 className="text-xs font-medium text-base-content/50 uppercase tracking-wider mb-1">Address</h3>

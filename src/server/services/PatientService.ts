@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 import { db } from "@/db";
-import { patients, type Patient, type NewPatient } from "@/db/schema";
+import { patients, medications, type Patient, type NewPatient } from "@/db/schema";
 
 export class PatientService {
   async getPatients() {
@@ -9,7 +9,11 @@ export class PatientService {
       first_name: patients.first_name,
       last_name: patients.last_name,
       photo_url: patients.photo_url,
-      medical_conditions: patients.medical_conditions,
+      active_medication_count: sql<number>`(
+        SELECT COUNT(*)::int FROM ${medications}
+        WHERE ${medications.patient_id} = ${patients.id}
+        AND ${medications.is_active} = true
+      )`.as("active_medication_count"),
     }).from(patients);
   }
 

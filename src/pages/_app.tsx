@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { trpc, getTRPCClientConfig } from "@/utils/trpc";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AppDisclaimer } from "@/components/AppDisclaimer";
 import { Inter } from "next/font/google";
 
 const inter = Inter({
@@ -22,6 +23,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <ToastProvider>
           <ErrorBoundary>
             <div className={`${inter.variable} font-sans`}>
+              <AppDisclaimer />
               <Component {...pageProps} />
             </div>
           </ErrorBoundary>

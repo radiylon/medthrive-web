@@ -35,17 +35,14 @@ const timeOfDayConfig = {
   morning: {
     label: "Morning",
     icon: Sun,
-    range: "6 AM - 12 PM",
   },
   afternoon: {
     label: "Afternoon",
     icon: Sunset,
-    range: "12 PM - 6 PM",
   },
   evening: {
     label: "Evening",
     icon: Moon,
-    range: "6 PM - 12 AM",
   },
 };
 
@@ -71,7 +68,6 @@ export function TodayView() {
         },
       });
       utils.schedule.getTodaysDoses.invalidate();
-      utils.schedule.getDashboardSummary.invalidate();
     },
     onError: (error) => {
       showToast({ message: error.message, type: "error" });
@@ -85,7 +81,6 @@ export function TodayView() {
     onSuccess: () => {
       showToast({ message: "Dose unmarked", type: "info" });
       utils.schedule.getTodaysDoses.invalidate();
-      utils.schedule.getDashboardSummary.invalidate();
     },
     onError: (error) => {
       showToast({ message: error.message, type: "error" });
@@ -113,8 +108,8 @@ export function TodayView() {
     return (
       <EmptyState
         icon="calendar"
-        title="No doses today"
-        description="There are no doses scheduled for today."
+        title="All done for today"
+        description="No medications scheduled. Enjoy your day!"
       />
     );
   }
@@ -130,7 +125,7 @@ export function TodayView() {
         <CheckCircle className="h-6 w-6 text-success" />
         <div className="flex-1">
           <p className="font-semibold">
-            {takenCount} of {totalCount} doses completed
+            {takenCount} of {totalCount} completed
           </p>
           <div className="w-full bg-base-200 rounded-full h-2 mt-2">
             <div
@@ -157,7 +152,6 @@ export function TodayView() {
             <div className="flex items-center gap-2">
               <Icon className="h-5 w-5 text-base-content/60" />
               <h3 className="font-semibold text-base-content">{config.label}</h3>
-              <span className="text-sm text-base-content/50">{config.range}</span>
             </div>
             <div className="space-y-2">
               {dosesForTime.map((dose) => (
@@ -169,8 +163,7 @@ export function TodayView() {
                   patientName={`${dose.patient.first_name} ${dose.patient.last_name}`}
                   patientPhotoUrl={dose.patient.photo_url}
                   patientId={dose.patient.id}
-                  scheduledTime={dose.scheduled_date}
-                  status={dose.status}
+                  isTaken={dose.status === "taken"}
                   onMarkTaken={handleMarkTaken}
                   isMarking={markingId === dose.id}
                 />

@@ -21,28 +21,6 @@ export const scheduleRouter = router({
       return await scheduleService.unmarkScheduleAsTaken(input.id);
     }),
 
-  getDashboardSummary: publicProcedure.query(async () => {
-    return await scheduleService.getDashboardSummary();
-  }),
-
-  getOverdueDoses: publicProcedure
-    .input(z.object({ limit: z.number().optional() }).optional())
-    .query(async ({ input }) => {
-      return await scheduleService.getOverdueDoses(input?.limit);
-    }),
-
-  getDueNowDoses: publicProcedure
-    .input(z.object({ limit: z.number().optional() }).optional())
-    .query(async ({ input }) => {
-      return await scheduleService.getDueNowDoses(input?.limit);
-    }),
-
-  getUpcomingDoses: publicProcedure
-    .input(z.object({ limit: z.number().optional() }).optional())
-    .query(async ({ input }) => {
-      return await scheduleService.getUpcomingDoses(input?.limit);
-    }),
-
   getTodaysDoses: publicProcedure.query(async () => {
     return await scheduleService.getTodaysDoses();
   }),

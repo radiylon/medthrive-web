@@ -2,21 +2,12 @@ import { ReactNode } from "react";
 import { Sidebar } from "@/components/navigation/Sidebar";
 import { BottomNav } from "@/components/navigation/BottomNav";
 import Toast from "@/components/Toast";
-import { trpc } from "@/utils/trpc";
 
 interface AppLayoutProps {
   children: ReactNode;
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  // Get overdue count for badge display
-  const { data: dashboardSummary } = trpc.schedule.getDashboardSummary.useQuery(undefined, {
-    refetchInterval: 60000, // Refresh every minute
-    staleTime: 30000,
-  });
-
-  const overdueCount = dashboardSummary?.overdue ?? 0;
-
   return (
     <div className="flex min-h-screen bg-base-200">
       {/* Skip Link for Keyboard Navigation */}
@@ -28,7 +19,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       </a>
 
       {/* Desktop Sidebar */}
-      <Sidebar overdueBadge={overdueCount} />
+      <Sidebar />
 
       {/* Main Content */}
       <main id="main-content" className="flex-1 pb-20 md:pb-0" role="main">
@@ -38,7 +29,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <BottomNav overdueBadge={overdueCount} />
+      <BottomNav />
 
       {/* Toast Notifications */}
       <Toast />

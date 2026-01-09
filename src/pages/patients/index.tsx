@@ -83,7 +83,9 @@ export default function PatientsListPage() {
                       {patient.first_name} {patient.last_name}
                     </h2>
                     <p className="text-sm text-base-content/60 truncate">
-                      {patient.medical_conditions?.join(", ") || "No conditions listed"}
+                      {patient.active_medication_count === 1
+                        ? "1 active medication"
+                        : `${patient.active_medication_count} active medications`}
                     </p>
                   </div>
                 </div>
