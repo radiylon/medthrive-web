@@ -160,7 +160,7 @@ async function seed() {
     let totalMedications = 0;
     let totalSchedules = 0;
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 8; i++) {
       const patient = await seedPatient(caregiver.id);
       const stats = await seedMedicationsForPatient(patient.id);
       totalMedications += stats.medications;
@@ -171,7 +171,7 @@ async function seed() {
     console.log("\n✅ Seed completed!");
     console.log("   Summary:");
     console.log(`   - 1 caregiver`);
-    console.log(`   - 4 patients`);
+    console.log(`   - 8 patients`);
     console.log(`   - ${totalMedications} medications`);
     console.log(`   - ${totalSchedules} schedules\n`);
   } catch (error) {
