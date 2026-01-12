@@ -18,15 +18,15 @@ export function AppLayout({ children }: AppLayoutProps) {
         Skip to main content
       </a>
 
-      {/* Desktop Sidebar */}
-      <Sidebar />
-
       {/* Main Content */}
       <main id="main-content" className="flex-1 pb-20 md:pb-0" role="main">
         <div className="container mx-auto p-4 sm:p-6 lg:p-8">
           {children}
         </div>
       </main>
+
+      {/* Desktop Sidebar */}
+      <Sidebar />
 
       {/* Mobile Bottom Nav */}
       <BottomNav />
