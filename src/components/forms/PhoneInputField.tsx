@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Controller, Control, FieldValues, Path } from "react-hook-form";
+import { formatPhoneInput, toE164, fromE164 } from "@/utils/phone";
 
 interface PhoneInputFieldProps<T extends FieldValues> {
   name: Path<T>;
@@ -9,35 +10,6 @@ interface PhoneInputFieldProps<T extends FieldValues> {
   label?: string;
   required?: boolean;
   className?: string;
-}
-
-// Format phone number as user types: (XXX) XXX-XXXX
-function formatPhoneNumber(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 10);
-  if (digits.length === 0) return "";
-  if (digits.length <= 3) return `(${digits}`;
-  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-}
-
-// Convert to E.164 format for storage: +1XXXXXXXXXX
-function toE164(digits: string): string {
-  return `+1${digits}`;
-}
-
-// Convert from E.164 to display format
-function fromE164(value: string | null | undefined): string {
-  if (!value) return "";
-  const digits = value.replace(/\D/g, "");
-  // Handle +1XXXXXXXXXX format
-  if (digits.length === 11 && digits.startsWith("1")) {
-    return formatPhoneNumber(digits.slice(1));
-  }
-  // Handle XXXXXXXXXX format
-  if (digits.length === 10) {
-    return formatPhoneNumber(digits);
-  }
-  return value;
 }
 
 export default function PhoneInputField<T extends FieldValues>({
@@ -73,7 +45,7 @@ export default function PhoneInputField<T extends FieldValues>({
               type="tel"
               value={displayValue}
               onChange={(e) => {
-                const formatted = formatPhoneNumber(e.target.value);
+                const formatted = formatPhoneInput(e.target.value);
                 const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
 
                 // Always update display for smooth typing UX

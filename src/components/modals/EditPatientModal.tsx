@@ -4,12 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { trpc } from "@/utils/trpc";
 import { useToast } from "@/contexts/ToastContext";
 import { patientFormSchema, PatientFormData } from "@/schemas";
-import {
-  FormField,
-  StateSelectInput,
-  DatePickerInput,
-  PhoneInputField,
-} from "@/components/forms";
+import FormField from "@/components/forms/FormField";
+import StateSelectInput from "@/components/forms/StateSelectInput";
+import DatePickerInput from "@/components/forms/DatePickerInput";
+import PhoneInputField from "@/components/forms/PhoneInputField";
 import type { Patient } from "@/db/schema";
 
 interface EditPatientModalProps {

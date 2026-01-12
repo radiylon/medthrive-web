@@ -5,7 +5,8 @@ import { trpc } from "@/utils/trpc";
 import { toLocalDateString } from "@/utils/date";
 import { useToast } from "@/contexts/ToastContext";
 import { medicationFormSchema, MedicationFormData } from "@/schemas";
-import { FormField, DatePickerInput } from "@/components/forms";
+import FormField from "@/components/forms/FormField";
+import DatePickerInput from "@/components/forms/DatePickerInput";
 
 interface AddMedicationModalProps {
   isOpen: boolean;

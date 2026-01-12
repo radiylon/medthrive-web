@@ -1,14 +1,7 @@
 import { AppLayout } from "@/layouts/AppLayout";
 import { PageHeader } from "@/components/navigation/PageHeader";
 import { TodayView } from "@/components/schedule/TodayView";
-
-function getFormattedDate(): string {
-  return new Date().toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-}
+import { getFormattedDate } from "@/utils/date";
 
 export default function DashboardPage() {
   return (

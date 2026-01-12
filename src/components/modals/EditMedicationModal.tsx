@@ -4,7 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { trpc } from "@/utils/trpc";
 import { useToast } from "@/contexts/ToastContext";
 import { medicationFormSchema, MedicationFormData } from "@/schemas";
-import { FormField, DatePickerInput } from "@/components/forms";
+import FormField from "@/components/forms/FormField";
+import DatePickerInput from "@/components/forms/DatePickerInput";
 import type { Medication } from "@/db/schema";
 
 interface EditMedicationModalProps {

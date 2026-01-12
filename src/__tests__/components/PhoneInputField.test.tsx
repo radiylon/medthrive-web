@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { isValidPhoneNumber } from "react-phone-number-input";
-import { PhoneInputField } from "@/components/forms";
+import PhoneInputField from "@/components/forms/PhoneInputField";
 
 // Simple schema for testing - mirrors the patientFormSchema phone validation
 const testSchema = z.object({
