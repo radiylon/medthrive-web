@@ -108,18 +108,6 @@ export function CardSkeleton({ className = "" }: { className?: string }) {
   );
 }
 
-export function TableRowSkeleton({ columns = 4, className = "" }: { columns?: number; className?: string }) {
-  return (
-    <tr className={`animate-pulse ${className}`}>
-      {Array.from({ length: columns }).map((_, index) => (
-        <td key={index} className="py-3 px-4">
-          <div className="h-4 bg-base-300 rounded w-full" />
-        </td>
-      ))}
-    </tr>
-  );
-}
-
 export function ListItemSkeleton({ className = "" }: { className?: string }) {
   return (
     <div className={`flex items-center gap-4 p-4 animate-pulse ${className}`}>
@@ -135,5 +123,4 @@ export function ListItemSkeleton({ className = "" }: { className?: string }) {
 
 // Namespace export for convenient usage like LoadingSkeleton.Card
 LoadingSkeleton.Card = CardSkeleton;
-LoadingSkeleton.TableRow = TableRowSkeleton;
 LoadingSkeleton.ListItem = ListItemSkeleton;

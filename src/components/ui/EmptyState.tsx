@@ -1,7 +1,7 @@
 import { type ReactNode, type ComponentType } from "react";
-import { Inbox, FileX, Users, Pill, Calendar, type LucideProps } from "lucide-react";
+import { Inbox, Pill, Calendar, type LucideProps } from "lucide-react";
 
-export type EmptyStateIconName = "inbox" | "file" | "users" | "pill" | "calendar";
+export type EmptyStateIconName = "inbox" | "pill" | "calendar";
 
 interface EmptyStateProps {
   title: string;
@@ -15,8 +15,6 @@ interface EmptyStateProps {
 
 const iconComponents: Record<EmptyStateIconName, ComponentType<LucideProps>> = {
   inbox: Inbox,
-  file: FileX,
-  users: Users,
   pill: Pill,
   calendar: Calendar,
 };
