@@ -1,20 +1,26 @@
-import { eq, sql, and } from "drizzle-orm";
+import { eq, and, count } from "drizzle-orm";
 import { db } from "@/db";
 import { patients, medications, type Patient, type NewPatient } from "@/db/schema";
 
-export class PatientService {
+export class PatientRepository {
   async getPatients() {
-    return await db.select({
-      id: patients.id,
-      first_name: patients.first_name,
-      last_name: patients.last_name,
-      photo_url: patients.photo_url,
-      active_medication_count: sql<number>`(
-        SELECT COUNT(*)::int FROM ${medications}
-        WHERE ${medications.patient_id} = ${patients.id}
-        AND ${medications.is_active} = true
-      )`.as("active_medication_count"),
-    }).from(patients);
+    return await db
+      .select({
+        id: patients.id,
+        first_name: patients.first_name,
+        last_name: patients.last_name,
+        photo_url: patients.photo_url,
+        active_medication_count: count(medications.id),
+      })
+      .from(patients)
+      .leftJoin(
+        medications,
+        and(
+          eq(medications.patient_id, patients.id),
+          eq(medications.is_active, true)
+        )
+      )
+      .groupBy(patients.id, patients.first_name, patients.last_name, patients.photo_url);
   }
 
   async getPatientById(patientId: string): Promise<Patient> {
@@ -47,4 +53,4 @@ export class PatientService {
   }
 }
 
-export const patientService = new PatientService();
+export const patientRepository = new PatientRepository();

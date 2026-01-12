@@ -19,7 +19,7 @@ export interface DoseWithDetails extends Schedule {
   status: DoseStatus;
 }
 
-export class ScheduleService {
+export class ScheduleRepository {
   async getSchedulesByMedicationId(medicationId: string): Promise<Schedule[]> {
     return await db
       .select()
@@ -169,4 +169,4 @@ export class ScheduleService {
   }
 }
 
-export const scheduleService = new ScheduleService();
+export const scheduleRepository = new ScheduleRepository();

@@ -5,7 +5,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { DoseCard } from "./DoseCard";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-import type { DoseWithDetails } from "@/server/services/ScheduleService";
+import type { DoseWithDetails } from "@/server/repositories";
 
 type TimeOfDay = "morning" | "afternoon" | "evening";
 

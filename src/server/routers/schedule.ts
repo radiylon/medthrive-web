@@ -1,27 +1,27 @@
 import { z } from "zod";
 import { router, publicProcedure } from "../trpc";
-import { scheduleService } from "../services";
+import { scheduleRepository } from "../repositories";
 
 export const scheduleRouter = router({
   byMedicationId: publicProcedure
     .input(z.object({ medicationId: z.string().uuid() }))
     .query(async ({ input }) => {
-      return await scheduleService.getSchedulesByMedicationId(input.medicationId);
+      return await scheduleRepository.getSchedulesByMedicationId(input.medicationId);
     }),
 
   markTaken: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ input }) => {
-      return await scheduleService.markScheduleAsTaken(input.id);
+      return await scheduleRepository.markScheduleAsTaken(input.id);
     }),
 
   unmarkTaken: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ input }) => {
-      return await scheduleService.unmarkScheduleAsTaken(input.id);
+      return await scheduleRepository.unmarkScheduleAsTaken(input.id);
     }),
 
   getTodaysDoses: publicProcedure.query(async () => {
-    return await scheduleService.getTodaysDoses();
+    return await scheduleRepository.getTodaysDoses();
   }),
 });

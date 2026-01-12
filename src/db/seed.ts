@@ -2,7 +2,7 @@ import "dotenv/config";
 import { faker } from "@faker-js/faker";
 import { db } from "./index";
 import { caregivers, patients, medications, schedules } from "./schema";
-import { scheduleService } from "@/server/services";
+import { scheduleRepository } from "@/server/repositories";
 import { CAREGIVER_ID } from "@/constants";
 import {
   ALLERGIES,
@@ -136,7 +136,7 @@ async function seedMedicationsForPatient(patientId: string) {
       .returning();
 
     // Generate schedules using existing service
-    const createdSchedules = await scheduleService.createSchedules(medication);
+    const createdSchedules = await scheduleRepository.createSchedules(medication);
     totalSchedules += createdSchedules.length;
 
     console.log(`    Added medication: ${med.name} (${createdSchedules.length} schedules)`);
