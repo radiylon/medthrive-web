@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { trpc } from "@/utils/trpc";
@@ -25,24 +24,20 @@ export default function EditMedicationModal({ isOpen, onClose, medication }: Edi
     formState: { errors, isDirty },
   } = useForm<MedicationFormData>({
     resolver: zodResolver(medicationFormSchema),
+    values: medication
+      ? {
+          name: medication.name,
+          description: medication.description ?? "",
+          quantity: medication.quantity,
+          is_active: medication.is_active,
+          schedule: {
+            frequency: medication.schedule.frequency,
+            type: medication.schedule.type as "daily" | "weekly",
+            start_date: medication.schedule.start_date.split("T")[0],
+          },
+        }
+      : undefined,
   });
-
-  // Reset form when medication changes
-  useEffect(() => {
-    if (medication && isOpen) {
-      reset({
-        name: medication.name,
-        description: medication.description ?? "",
-        quantity: medication.quantity,
-        is_active: medication.is_active,
-        schedule: {
-          frequency: medication.schedule.frequency,
-          type: medication.schedule.type as "daily" | "weekly",
-          start_date: medication.schedule.start_date.split("T")[0],
-        },
-      });
-    }
-  }, [medication, isOpen, reset]);
 
   const updateMedication = trpc.medication.update.useMutation({
     onSuccess: () => {

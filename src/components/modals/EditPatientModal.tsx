@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { trpc } from "@/utils/trpc";
@@ -28,22 +27,18 @@ export default function EditPatientModal({ isOpen, onClose, patient }: EditPatie
     formState: { errors, isDirty },
   } = useForm<PatientFormData>({
     resolver: zodResolver(patientFormSchema),
+    values: patient
+      ? {
+          first_name: patient.first_name,
+          last_name: patient.last_name,
+          email: patient.email,
+          phone_number: patient.phone_number,
+          date_of_birth: patient.date_of_birth,
+          gender: patient.gender,
+          address: patient.address,
+        }
+      : undefined,
   });
-
-  // Reset form when patient changes
-  useEffect(() => {
-    if (patient && isOpen) {
-      reset({
-        first_name: patient.first_name,
-        last_name: patient.last_name,
-        email: patient.email,
-        phone_number: patient.phone_number,
-        date_of_birth: patient.date_of_birth,
-        gender: patient.gender,
-        address: patient.address,
-      });
-    }
-  }, [patient, isOpen, reset]);
 
   const updatePatient = trpc.patient.update.useMutation({
     onSuccess: () => {
