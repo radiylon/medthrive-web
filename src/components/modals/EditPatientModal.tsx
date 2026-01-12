@@ -1,35 +1,22 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { trpc } from "@/utils/trpc";
 import { useToast } from "@/contexts/ToastContext";
-import { CAREGIVER_ID } from "@/constants";
 import { patientFormSchema, PatientFormData } from "@/schemas";
 import FormField from "@/components/forms/FormField";
 import StateSelectInput from "@/components/forms/StateSelectInput";
 import DatePickerInput from "@/components/forms/DatePickerInput";
 import PhoneInputField from "@/components/forms/PhoneInputField";
+import type { Patient } from "@/db/schema";
 
-interface AddPatientModalProps {
+interface EditPatientModalProps {
   isOpen: boolean;
   onClose: () => void;
+  patient: Patient | null;
 }
 
-const defaultValues: PatientFormData = {
-  first_name: "",
-  last_name: "",
-  date_of_birth: "",
-  email: "",
-  phone_number: "",
-  gender: "",
-  address: {
-    street: "",
-    city: "",
-    state: "",
-    zipcode: "",
-  },
-};
-
-export default function AddPatientModal({ isOpen, onClose }: AddPatientModalProps) {
+export default function EditPatientModal({ isOpen, onClose, patient }: EditPatientModalProps) {
   const { showToast } = useToast();
   const utils = trpc.useUtils();
 
@@ -38,18 +25,32 @@ export default function AddPatientModal({ isOpen, onClose }: AddPatientModalProp
     handleSubmit,
     control,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<PatientFormData>({
     resolver: zodResolver(patientFormSchema),
-    defaultValues,
   });
 
-  const createPatient = trpc.patient.create.useMutation({
+  // Reset form when patient changes
+  useEffect(() => {
+    if (patient && isOpen) {
+      reset({
+        first_name: patient.first_name,
+        last_name: patient.last_name,
+        email: patient.email,
+        phone_number: patient.phone_number,
+        date_of_birth: patient.date_of_birth,
+        gender: patient.gender,
+        address: patient.address,
+      });
+    }
+  }, [patient, isOpen, reset]);
+
+  const updatePatient = trpc.patient.update.useMutation({
     onSuccess: () => {
-      showToast({ message: "Patient created successfully", type: "success" });
+      showToast({ message: "Patient updated successfully", type: "success" });
+      utils.patient.byId.invalidate({ id: patient?.id });
       utils.patient.list.invalidate();
       onClose();
-      reset();
     },
     onError: (error) => {
       showToast({ message: error.message, type: "error" });
@@ -57,7 +58,8 @@ export default function AddPatientModal({ isOpen, onClose }: AddPatientModalProp
   });
 
   const onSubmit = (data: PatientFormData) => {
-    createPatient.mutate({ ...data, caregiver_id: CAREGIVER_ID });
+    if (!patient) return;
+    updatePatient.mutate({ id: patient.id, ...data });
   };
 
   const handleClose = () => {
@@ -65,7 +67,7 @@ export default function AddPatientModal({ isOpen, onClose }: AddPatientModalProp
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !patient) return null;
 
   return (
     <dialog className={`modal ${isOpen ? "modal-open" : ""}`}>
@@ -78,7 +80,7 @@ export default function AddPatientModal({ isOpen, onClose }: AddPatientModalProp
             ✕
           </button>
         </form>
-        <h3 className="font-bold text-2xl mb-4 text-center">Add New Patient</h3>
+        <h3 className="font-bold text-2xl mb-4 text-center">Edit Patient</h3>
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="grid grid-cols-2 gap-x-6 gap-y-4">
           <FormField label="First Name" error={errors.first_name?.message} required>
             <input
@@ -171,9 +173,9 @@ export default function AddPatientModal({ isOpen, onClose }: AddPatientModalProp
             <button
               type="submit"
               className="btn btn-primary min-w-32 max-w-64 min-h-12"
-              disabled={createPatient.isPending}
+              disabled={updatePatient.isPending || !isDirty}
             >
-              {createPatient.isPending ? "Adding..." : "Add Patient"}
+              {updatePatient.isPending ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

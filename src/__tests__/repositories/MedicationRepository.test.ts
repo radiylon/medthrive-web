@@ -17,21 +17,21 @@ vi.mock("@/db", () => ({
 
 // Import after mocking
 import { db } from "@/db";
-import { MedicationService } from "@/server/services/MedicationService";
+import { MedicationRepository } from "@/server/repositories/MedicationRepository";
 
-describe("MedicationService", () => {
-  let medicationService: MedicationService;
+describe("MedicationRepository", () => {
+  let medicationRepository: MedicationRepository;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    medicationService = new MedicationService();
+    medicationRepository = new MedicationRepository();
   });
 
   describe("getMedicationsByPatientId", () => {
     it("should return medications for a patient", async () => {
       vi.mocked(db.where).mockResolvedValueOnce(mockMedicationsList as any);
 
-      const result = await medicationService.getMedicationsByPatientId("patient-1");
+      const result = await medicationRepository.getMedicationsByPatientId("patient-1");
 
       expect(db.select).toHaveBeenCalled();
       expect(db.from).toHaveBeenCalled();
@@ -42,7 +42,7 @@ describe("MedicationService", () => {
     it("should return empty array when patient has no medications", async () => {
       vi.mocked(db.where).mockResolvedValueOnce([] as any);
 
-      const result = await medicationService.getMedicationsByPatientId("patient-no-meds");
+      const result = await medicationRepository.getMedicationsByPatientId("patient-no-meds");
 
       expect(result).toEqual([]);
     });
@@ -52,7 +52,7 @@ describe("MedicationService", () => {
     it("should return a medication when found", async () => {
       vi.mocked(db.where).mockResolvedValueOnce([mockMedication] as any);
 
-      const result = await medicationService.getMedicationById("medication-1");
+      const result = await medicationRepository.getMedicationById("medication-1");
 
       expect(db.select).toHaveBeenCalled();
       expect(db.from).toHaveBeenCalled();
@@ -63,7 +63,7 @@ describe("MedicationService", () => {
     it("should throw an error when medication is not found", async () => {
       vi.mocked(db.where).mockResolvedValueOnce([] as any);
 
-      await expect(medicationService.getMedicationById("non-existent")).rejects.toThrow(
+      await expect(medicationRepository.getMedicationById("non-existent")).rejects.toThrow(
         "Medication not found"
       );
     });
@@ -74,7 +74,7 @@ describe("MedicationService", () => {
       const createdMedication = { ...mockMedication, ...mockNewMedication };
       vi.mocked(db.returning).mockResolvedValueOnce([createdMedication] as any);
 
-      const result = await medicationService.createMedication(mockNewMedication);
+      const result = await medicationRepository.createMedication(mockNewMedication);
 
       expect(db.insert).toHaveBeenCalled();
       expect(db.values).toHaveBeenCalledWith(mockNewMedication);
@@ -88,7 +88,7 @@ describe("MedicationService", () => {
       const updatedMedication = { ...mockMedication, is_active: false };
       vi.mocked(db.returning).mockResolvedValueOnce([updatedMedication] as any);
 
-      const result = await medicationService.updateMedication("medication-1", { is_active: false });
+      const result = await medicationRepository.updateMedication("medication-1", { is_active: false });
 
       expect(db.update).toHaveBeenCalled();
       expect(db.set).toHaveBeenCalledWith({ is_active: false });
@@ -101,7 +101,7 @@ describe("MedicationService", () => {
       vi.mocked(db.returning).mockResolvedValueOnce([undefined] as any);
 
       await expect(
-        medicationService.updateMedication("non-existent", { is_active: false })
+        medicationRepository.updateMedication("non-existent", { is_active: false })
       ).rejects.toThrow("Medication not found");
     });
   });

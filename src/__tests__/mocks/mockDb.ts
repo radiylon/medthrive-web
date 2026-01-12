@@ -2,7 +2,6 @@ import { vi } from "vitest";
 
 // In-memory storage for mock data
 export const mockData = {
-  caregivers: [] as any[],
   patients: [] as any[],
   medications: [] as any[],
   schedules: [] as any[],
@@ -10,7 +9,6 @@ export const mockData = {
 
 // Reset mock data between tests
 export const resetMockData = () => {
-  mockData.caregivers = [];
   mockData.patients = [];
   mockData.medications = [];
   mockData.schedules = [];

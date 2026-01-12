@@ -19,21 +19,21 @@ vi.mock("@/db", () => ({
 
 // Import after mocking
 import { db } from "@/db";
-import { ScheduleService } from "@/server/services/ScheduleService";
+import { ScheduleRepository } from "@/server/repositories/ScheduleRepository";
 
-describe("ScheduleService", () => {
-  let scheduleService: ScheduleService;
+describe("ScheduleRepository", () => {
+  let scheduleRepository: ScheduleRepository;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    scheduleService = new ScheduleService();
+    scheduleRepository = new ScheduleRepository();
   });
 
   describe("getSchedulesByMedicationId", () => {
     it("should return schedules for a medication ordered by date", async () => {
       vi.mocked(db.orderBy).mockResolvedValueOnce(mockSchedulesList as any);
 
-      const result = await scheduleService.getSchedulesByMedicationId("medication-1");
+      const result = await scheduleRepository.getSchedulesByMedicationId("medication-1");
 
       expect(db.select).toHaveBeenCalled();
       expect(db.from).toHaveBeenCalled();
@@ -45,7 +45,7 @@ describe("ScheduleService", () => {
     it("should return empty array when medication has no schedules", async () => {
       vi.mocked(db.orderBy).mockResolvedValueOnce([] as any);
 
-      const result = await scheduleService.getSchedulesByMedicationId("medication-no-schedules");
+      const result = await scheduleRepository.getSchedulesByMedicationId("medication-no-schedules");
 
       expect(result).toEqual([]);
     });
@@ -77,7 +77,7 @@ describe("ScheduleService", () => {
         ) as any;
       });
 
-      const result = await scheduleService.createSchedules(medication);
+      const result = await scheduleRepository.createSchedules(medication);
 
       expect(db.insert).toHaveBeenCalled();
       expect(db.values).toHaveBeenCalled();
@@ -110,7 +110,7 @@ describe("ScheduleService", () => {
         ) as any;
       });
 
-      const result = await scheduleService.createSchedules(medication);
+      const result = await scheduleRepository.createSchedules(medication);
 
       expect(result).toHaveLength(3);
 
@@ -145,7 +145,7 @@ describe("ScheduleService", () => {
         ) as any;
       });
 
-      const result = await scheduleService.createSchedules(medication);
+      const result = await scheduleRepository.createSchedules(medication);
 
       result.forEach((schedule) => {
         expect(schedule.taken_at).toBeNull();
@@ -158,7 +158,7 @@ describe("ScheduleService", () => {
       const takenSchedule = { ...mockSchedule, taken_at: new Date() };
       vi.mocked(db.returning).mockResolvedValueOnce([takenSchedule] as any);
 
-      const result = await scheduleService.markScheduleAsTaken("schedule-1");
+      const result = await scheduleRepository.markScheduleAsTaken("schedule-1");
 
       expect(db.update).toHaveBeenCalled();
       expect(db.set).toHaveBeenCalled();
@@ -170,7 +170,7 @@ describe("ScheduleService", () => {
     it("should throw an error when schedule is not found", async () => {
       vi.mocked(db.returning).mockResolvedValueOnce([undefined] as any);
 
-      await expect(scheduleService.markScheduleAsTaken("non-existent")).rejects.toThrow(
+      await expect(scheduleRepository.markScheduleAsTaken("non-existent")).rejects.toThrow(
         "Schedule not found"
       );
     });

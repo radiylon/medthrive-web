@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { medications, type Medication, type NewMedication } from "@/db/schema";
 
-export class MedicationService {
+export class MedicationRepository {
   async getMedicationsByPatientId(patientId: string): Promise<Medication[]> {
     return await db.select().from(medications).where(eq(medications.patient_id, patientId));
   }
@@ -37,4 +37,4 @@ export class MedicationService {
   }
 }
 
-export const medicationService = new MedicationService();
+export const medicationRepository = new MedicationRepository();

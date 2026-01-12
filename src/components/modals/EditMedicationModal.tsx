@@ -1,53 +1,55 @@
-import { useRouter } from "next/router";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { trpc } from "@/utils/trpc";
-import { toLocalDateString } from "@/utils/date";
 import { useToast } from "@/contexts/ToastContext";
 import { medicationFormSchema, MedicationFormData } from "@/schemas";
 import FormField from "@/components/forms/FormField";
 import DatePickerInput from "@/components/forms/DatePickerInput";
+import type { Medication } from "@/db/schema";
 
-interface AddMedicationModalProps {
+interface EditMedicationModalProps {
   isOpen: boolean;
   onClose: () => void;
+  medication: Medication | null;
 }
 
-const getDefaultValues = (): MedicationFormData => ({
-  name: "",
-  is_active: true,
-  description: "",
-  quantity: 0,
-  schedule: {
-    frequency: 2,
-    type: "daily",
-    start_date: toLocalDateString(),
-  },
-});
-
-export default function AddMedicationModal({ isOpen, onClose }: AddMedicationModalProps) {
+export default function EditMedicationModal({ isOpen, onClose, medication }: EditMedicationModalProps) {
   const { showToast } = useToast();
   const utils = trpc.useUtils();
-
-  const router = useRouter();
-  const { patientId } = router.query;
 
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<MedicationFormData>({
     resolver: zodResolver(medicationFormSchema),
-    defaultValues: getDefaultValues(),
   });
 
-  const createMedication = trpc.medication.create.useMutation({
+  // Reset form when medication changes
+  useEffect(() => {
+    if (medication && isOpen) {
+      reset({
+        name: medication.name,
+        description: medication.description ?? "",
+        quantity: medication.quantity,
+        is_active: medication.is_active,
+        schedule: {
+          frequency: medication.schedule.frequency,
+          type: medication.schedule.type as "daily" | "weekly",
+          start_date: medication.schedule.start_date.split("T")[0],
+        },
+      });
+    }
+  }, [medication, isOpen, reset]);
+
+  const updateMedication = trpc.medication.update.useMutation({
     onSuccess: () => {
-      showToast({ message: "Medication created successfully", type: "success" });
-      utils.medication.byPatientId.invalidate({ patientId: patientId as string });
+      showToast({ message: "Medication updated successfully", type: "success" });
+      utils.medication.byId.invalidate({ id: medication?.id });
+      utils.medication.byPatientId.invalidate({ patientId: medication?.patient_id });
       onClose();
-      reset(getDefaultValues());
     },
     onError: (error) => {
       showToast({ message: error.message, type: "error" });
@@ -55,18 +57,16 @@ export default function AddMedicationModal({ isOpen, onClose }: AddMedicationMod
   });
 
   const onSubmit = (data: MedicationFormData) => {
-    createMedication.mutate({
-      ...data,
-      patient_id: patientId as string,
-    });
+    if (!medication) return;
+    updateMedication.mutate({ id: medication.id, ...data });
   };
 
   const handleClose = () => {
-    reset(getDefaultValues());
+    reset();
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !medication) return null;
 
   return (
     <dialog className={`modal ${isOpen ? "modal-open" : ""}`}>
@@ -79,7 +79,7 @@ export default function AddMedicationModal({ isOpen, onClose }: AddMedicationMod
             ✕
           </button>
         </form>
-        <h3 className="font-bold text-xl sm:text-2xl mb-4 text-center">Add New Medication</h3>
+        <h3 className="font-bold text-xl sm:text-2xl mb-4 text-center">Edit Medication</h3>
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
           <FormField label="Medication Name" error={errors.name?.message} required>
             <input
@@ -138,7 +138,7 @@ export default function AddMedicationModal({ isOpen, onClose }: AddMedicationMod
           <div className="modal-action flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-2 mt-8 col-span-1 sm:col-span-2">
             <button
               type="button"
-              className="btn btn-outline min-w-32 max-w-64 min-h-12 w-full sm:w-auto"
+              className="btn btn-outline hover:bg-base-200/50 hover:border-base-content/20 min-w-32 max-w-64 min-h-12 w-full sm:w-auto"
               onClick={handleClose}
             >
               Cancel
@@ -146,9 +146,9 @@ export default function AddMedicationModal({ isOpen, onClose }: AddMedicationMod
             <button
               type="submit"
               className="btn btn-primary min-w-32 max-w-64 min-h-12 w-full sm:w-auto"
-              disabled={createMedication.isPending}
+              disabled={updateMedication.isPending || !isDirty}
             >
-              {createMedication.isPending ? "Adding..." : "Add Medication"}
+              {updateMedication.isPending ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

@@ -2,7 +2,8 @@ import "dotenv/config";
 import { faker } from "@faker-js/faker";
 import { db } from "./index";
 import { caregivers, patients, medications, schedules } from "./schema";
-import { scheduleService } from "@/server/services";
+import { scheduleRepository } from "@/server/repositories";
+import { CAREGIVER_ID } from "@/constants";
 import {
   ALLERGIES,
   MEDICAL_CONDITIONS,
@@ -27,6 +28,17 @@ function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+const EMAIL_DOMAINS = ["gmail.com", "yahoo.com", "hotmail.com", "protonmail.com"];
+
+function generateEmail(firstName: string, lastName: string): string {
+  const domain = pickOne(EMAIL_DOMAINS);
+  return `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${domain}`;
+}
+
+function generateUSPhoneNumber(): string {
+  return `+1${faker.string.numeric(10)}`;
+}
+
 async function clearData() {
   console.log("Clearing existing data...");
   await db.delete(schedules);
@@ -41,6 +53,7 @@ async function seedCaregiver() {
   const [caregiver] = await db
     .insert(caregivers)
     .values({
+      id: CAREGIVER_ID,
       first_name: faker.person.firstName(),
       last_name: faker.person.lastName(),
       email: faker.internet.email(),
@@ -55,15 +68,17 @@ async function seedCaregiver() {
 async function seedPatient(caregiverId: string) {
   const gender = pickOne(["male", "female"]);
   const hasNotes = Math.random() > 0.5;
+  const firstName = faker.person.firstName(gender as "male" | "female");
+  const lastName = faker.person.lastName();
 
   const [patient] = await db
     .insert(patients)
     .values({
       caregiver_id: caregiverId,
-      first_name: faker.person.firstName(gender as "male" | "female"),
-      last_name: faker.person.lastName(),
-      email: faker.internet.email(),
-      phone_number: faker.phone.number({ style: "national" }),
+      first_name: firstName,
+      last_name: lastName,
+      email: generateEmail(firstName, lastName),
+      phone_number: generateUSPhoneNumber(),
       date_of_birth: faker.date
         .birthdate({ min: 65, max: 85, mode: "age" })
         .toISOString()
@@ -79,7 +94,7 @@ async function seedPatient(caregiverId: string) {
       medical_conditions: pickRandom(MEDICAL_CONDITIONS, randomInt(1, 4)),
       emergency_contact: {
         name: faker.person.fullName(),
-        phone: faker.phone.number({ style: "national" }),
+        phone: generateUSPhoneNumber(),
         relationship: pickOne(EMERGENCY_CONTACT_RELATIONSHIPS),
       },
       notes: hasNotes ? faker.lorem.sentence() : null,
@@ -121,7 +136,7 @@ async function seedMedicationsForPatient(patientId: string) {
       .returning();
 
     // Generate schedules using existing service
-    const createdSchedules = await scheduleService.createSchedules(medication);
+    const createdSchedules = await scheduleRepository.createSchedules(medication);
     totalSchedules += createdSchedules.length;
 
     console.log(`    Added medication: ${med.name} (${createdSchedules.length} schedules)`);

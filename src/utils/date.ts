@@ -7,3 +7,14 @@ export const toLocalDateString = (date: Date = new Date()): string => {
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
+
+/**
+ * Format current date as a human-readable string: "Monday, January 1"
+ */
+export function getFormattedDate(): string {
+  return new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+}

@@ -1,41 +1,75 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, ReactNode } from "react";
 
-type ToastType = "success" | "error" | "info" | "warning";
+export type ToastType = "success" | "error" | "info" | "warning";
 
-interface ToastState {
+export interface ToastItem {
+  id: string;
   message: string;
   type: ToastType;
-  isVisible: boolean;
+  duration?: number;
+  onUndo?: () => void;
+  undoText?: string;
 }
 
 interface ToastContextType {
-  showToast: ({ message, type }: { message: string; type: ToastType }) => void;
-  hideToast: () => void;
-  toast: ToastState;
+  toasts: ToastItem[];
+  showToast: (options: {
+    message: string;
+    type: ToastType;
+    duration?: number;
+    onUndo?: () => void;
+    undoText?: string;
+  }) => string;
+  hideToast: (id: string) => void;
+  clearToasts: () => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
+let toastIdCounter = 0;
+
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [toast, setToast] = useState<ToastState>({
-    message: "",
-    type: "info",
-    isVisible: false,
-  });
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
 
-  const showToast = ({ message, type }: { message: string; type: ToastType }) => {
-    setToast({ message, type, isVisible: true });
-    setTimeout(() => {
-      hideToast();
-    }, 3000);
-  };
+  const showToast = useCallback(
+    ({
+      message,
+      type,
+      duration = 3000,
+      onUndo,
+      undoText = "Undo",
+    }: {
+      message: string;
+      type: ToastType;
+      duration?: number;
+      onUndo?: () => void;
+      undoText?: string;
+    }) => {
+      const id = `toast-${++toastIdCounter}`;
 
-  const hideToast = () => {
-    setToast((prev) => ({ ...prev, isVisible: false }));
-  };
+      setToasts((prev) => [...prev, { id, message, type, duration, onUndo, undoText }]);
+
+      if (duration > 0) {
+        setTimeout(() => {
+          hideToast(id);
+        }, duration);
+      }
+
+      return id;
+    },
+    []
+  );
+
+  const hideToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  }, []);
+
+  const clearToasts = useCallback(() => {
+    setToasts([]);
+  }, []);
 
   return (
-    <ToastContext.Provider value={{ showToast, hideToast, toast }}>
+    <ToastContext.Provider value={{ toasts, showToast, hideToast, clearToasts }}>
       {children}
     </ToastContext.Provider>
   );
